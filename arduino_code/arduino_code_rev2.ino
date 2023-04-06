@@ -27,18 +27,14 @@ const int interval = 5;
 EthernetClient  ethClient;
 
 void fetch_IP(void);
-
-
-#define mac_6 0x73
-
-static uint8_t mymac[6] = {0x44,0x76,0x58,0x10,0x00,mac_6};
+static uint8_t mymac[6] = { 0x44,0x76,0x58,0x10,0x00,0x62 };
 
 ///////////////////////////////////////////////////////////////////
 
 // MQTT Settings //
 
-unsigned int = Port 1883;
-byte server[] = { 10,6,0,20};
+unsigned int  Port = 1883;
+byte server[] = { 10,6,0,21 };
 
 char* deviceId  = "Amogus";
 char* clientId  = "abcd9876";
@@ -56,7 +52,7 @@ PubSubClient client(server, Port, callback, ethClient);
 
 // MQTT topic names
 
-#define inTopic   "ass"
+#define inTopic   "ahoi"
 #define outTopic  "ICT4_out_2020"
 
 ///////////////////////
@@ -73,7 +69,8 @@ void setup() {
   
   Timer1.initialize(500000); // 500 000 us = 0.5s
   Timer1.attachInterrupt(timerInt);
-
+  fetch_IP();
+  Connect_MQTT_server();
   // set up the LCD's number of columns and rows:
   lcd.begin(16, 2);
 
@@ -82,6 +79,7 @@ void setup() {
 }
 
 void loop() {
+  
 
   if (digitalRead(17) == LOW) {
     // 1 Key
@@ -133,7 +131,15 @@ void loop() {
     lcd.setCursor(16, 0);
     lcd.print(key);
   }*/
+
+  // sending the message :) commented out due to keyboard stopping working while active. works for sending data though :)
+ // int inx=10;
   
+ // while(true){
+ // send_MQTT_message(inx);
+ // inx++;
+ // delay(1500);
+ // }
 }
 
 // interrupt subroutine
@@ -192,3 +198,51 @@ void fetch_IP(void)
 
 
 }
+
+//MQTT Routines
+
+void send_MQTT_message(int num){
+  char bufa[50];
+  if (client.connected()){
+    sprintf(bufa,"Amogus: value =%d", num);
+    Serial.println( bufa );
+    client.publish(outTopic, bufa);
+  }
+  else {
+    delay(500);
+    Serial.println("No, reconnecting");
+    client.connect(clientId, deviceId, deviceSecret);
+    delay(1000);
+  }
+}
+
+//MQTT server connection
+
+void Connect_MQTT_server(){
+  Serial.println(" Connecting to MQTT" );
+  Serial.print(server[0]); Serial.print(".");     // Print MQTT server IP number to Serial monitor
+  Serial.print(server[1]); Serial.print(".");
+  Serial.print(server[2]); Serial.print(".");
+  Serial.println(server[3]); 
+  delay(500);
+
+  if (!client.connected()){
+    if (client.connect(clientId, deviceId, deviceSecret)) {
+      Serial.println(" Connected ");
+      client.subscribe(inTopic);
+    }
+    else{
+      Serial.println(client.state());
+    }
+  }
+}
+  //receive incoming MQTT message
+
+ void callback(char* topic, byte* payload, unsigned int length){ 
+  char* receiv_string;                               // copy the payload content into a char* 
+  receiv_string = (char*) malloc(length + 1); 
+  memcpy(receiv_string, payload, length);           // copy received message to receiv_string 
+  receiv_string[length] = '\0';           
+  Serial.println( receiv_string );
+  free(receiv_string); 
+} 
