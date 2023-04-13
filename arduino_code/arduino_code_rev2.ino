@@ -12,8 +12,8 @@ const int rs = 8, en = 7, d4 = 6, d5 = 5, d6 = 4, d7 = 3;
 LiquidCrystal lcd(rs, en, d4, d5, d6, d7);
 
 const int padPins[4] = {14, 15, 16, 17};
-enum states { wind, humidity, test1, test2 };
-states States = wind; // Dafault state
+enum states { wind, direction, test1, test2 };
+states States = wind; // Default state
 
 volatile byte puls = 0;   // interrupt pulse count
 volatile byte i_time = 0; 
@@ -74,8 +74,6 @@ void setup() {
   // set up the LCD's number of columns and rows:
   lcd.begin(16, 2);
 
- //fetch ip from dhcp, requires more work, prints connected IP(?) currently
-  //fetch_IP(); 
 }
 
 void loop() {
@@ -87,7 +85,7 @@ void loop() {
 
   } else if (digitalRead(16) == LOW){
     // 2 Key
-    States = humidity;
+    States = direction;
 
   } else if (digitalRead(15) == LOW){
     // 3 Key
@@ -101,24 +99,35 @@ void loop() {
   switch (States) {
     case wind:
       lcd.setCursor(0, 0);
-      lcd.print("Wind speed:     ");
+      lcd.print("Wind speed:        ");
       lcd.setCursor(0, 1);
       lcd.print(0.6344 * freq + 0.2493); // Calculate wind speed in m/s
+      lcd.setCursor(4, 1);
+      lcd.print(" m/s           ");
       break;
 
-    case humidity:
+    case direction:
       lcd.setCursor(0, 0);
-      lcd.print("Humidity:       ");
+      lcd.print("Wind direction:           ");
+
+      lcd.setCursor(0, 1);
+      lcd.print("                     ");
       break;
 
     case test1:
       lcd.setCursor(0, 0);
-      lcd.print("AmogSus          ");
+      lcd.print("IP:             ");
+      lcd.setCursor(0, 1);
+      lcd.print(Ethernet.localIP());
+      lcd.setCursor(7, 1);
+      lcd.print("           ");
       break;
 
     case test2:
       lcd.setCursor(0, 0);
-      lcd.print("SUS             ");
+      lcd.print("Shrek is life          ");
+      lcd.setCursor(0, 1);
+      lcd.print("Shrek is love                ");
       break;
   }
   
@@ -132,7 +141,7 @@ void loop() {
     lcd.print(key);
   }*/
 
-  // sending the message :) commented out due to keyboard stopping working while active. works for sending data though :)
+ // sending the message :) commented out due to keyboard stopping working while active. works for sending data though :)
  // int inx=10;
   
  // while(true){
@@ -160,7 +169,7 @@ void timerInt(){
   }
 }
 
-void fetch_IP(void)
+ void fetch_IP(void)
 {
   byte rev=1;
 
@@ -194,7 +203,7 @@ void fetch_IP(void)
   lcd.setCursor(0,1);
   lcd.print("myIP=");
   lcd.print(Ethernet.localIP());
-  delay(1500);
+  delay(150);
 
 
 }
