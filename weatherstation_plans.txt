@@ -1,0 +1,9 @@
+local shtuff
+- tuulen suunnat 
+- näytön hienosäätö
+- ethernet moduulin aikakatkaisu
+-
+
+final steps :)
+- datan lähetys näppäimeen
+- 
