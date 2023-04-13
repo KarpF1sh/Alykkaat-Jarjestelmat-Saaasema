@@ -77,7 +77,6 @@ void setup() {
 }
 
 void loop() {
-  
 
   if (digitalRead(17) == LOW) {
     // 1 Key
@@ -109,9 +108,20 @@ void loop() {
     case direction:
       lcd.setCursor(0, 0);
       lcd.print("Wind direction:           ");
-
       lcd.setCursor(0, 1);
-      lcd.print("                     ");
+      int dir;
+      dir = WindDirection(analogRead(A4) * (5.0 / 1023.0));
+
+      if (dir == 0) {
+        lcd.print("North               ");
+      } else if (dir == 90) {
+        lcd.print("East                ");
+      } else if (dir == 180) {
+        lcd.print("South               ");
+      } else {
+        lcd.print("West                ");
+      }
+      
       break;
 
     case test1:
@@ -130,7 +140,8 @@ void loop() {
       lcd.print("Shrek is love                ");
       break;
   }
-  
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 
+
   //Serial.println(keyVal);
   /*
   if (key != '-') {
@@ -182,18 +193,18 @@ void timerInt(){
      
   Serial.print( F("\nW5500 Revision ") );
     
-  if ( rev == 0){
+  if (rev == 0){
                    
-                      Serial.println( F( "Failed to access Ethernet controller" ) );
+    Serial.println( F( "Failed to access Ethernet controller" ) );
                    
-                                                // 0123456789012345689 
-                    lcd.setCursor(0,0); lcd.print(" Ethernet failed   ");
-                 }    
+    // 0123456789012345689 
+    lcd.setCursor(0,0); lcd.print(" Ethernet failed   ");
+  }    
                  
               
-     Serial.println( F( "Setting up DHCP" ));
-     Serial.print("Connected with IP: "); 
-     Serial.println(Ethernet.localIP()); 
+  Serial.println( F( "Setting up DHCP" ));
+  Serial.print("Connected with IP: "); 
+  Serial.println(Ethernet.localIP()); 
 
 
   lcd.setCursor(0,1);
@@ -203,7 +214,7 @@ void timerInt(){
   lcd.setCursor(0,1);
   lcd.print("myIP=");
   lcd.print(Ethernet.localIP());
-  delay(150);
+  delay(1500);
 
 
 }
@@ -255,3 +266,19 @@ void Connect_MQTT_server(){
   Serial.println( receiv_string );
   free(receiv_string); 
 } 
+
+int WindDirection(float voltage)
+{
+  if (voltage >= 0 && voltage < 0.95){
+    return 0;
+
+  } else if (voltage >= 0.95 && voltage < 1.9){
+    return 90;
+
+  } else if (voltage >= 1.9 && voltage < 2.85){
+    return 180;
+
+  } else {
+    return 270;
+  }
+}
