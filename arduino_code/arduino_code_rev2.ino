@@ -3,28 +3,35 @@
 #include <TimerOne.h>
 #include <PubSubClient.h>
 
-
-int keystate = 0;
-
 // initialize the library by associating any needed LCD interface pin
 // with the arduino pin number it is connected to
 const int rs = 8, en = 7, d4 = 6, d5 = 5, d6 = 4, d7 = 3;
-LiquidCrystal lcd(rs, en, d4, d5, d6, d7);
+LiquidCrystal lcd(8, 7, 6, 5, 4, 3);
 
+// Pins for keypad
 const int padPins[4] = {14, 15, 16, 17};
+
+// States for menu
 enum states { wind, direction, test1, test2 };
 states States = wind; // Default state
 
-volatile byte puls = 0;   // interrupt pulse count
+// Interrupt pulse count
+volatile byte puls = 0;   
 volatile byte i_time = 0; 
-volatile byte freq = 0;   // Calculated frequency
+// Calculated frequency
+volatile byte freq = 0;   
 
 // Seconds 
 const int interval = 5;
 
+// Integer for wind direction
+int windDir;
+// Float for wind speed
+float windSpeed;
+
 ///////////////////////////////////////////////////////////////////
 
-EthernetClient  ethClient;
+EthernetClient ethClient;
 
 void fetch_IP(void);
 static uint8_t mymac[6] = { 0x44,0x76,0x58,0x10,0x00,0x62 };
@@ -60,7 +67,8 @@ PubSubClient client(server, Port, callback, ethClient);
 void setup() {
   Serial.begin(9600);
 
-  for (int i = 0; i < 4; i++){
+  for (int i = 0; i < 4; i++)
+  {
      pinMode(padPins[i], INPUT_PULLUP);
   }
 
@@ -97,10 +105,13 @@ void loop() {
 
   switch (States) {
     case wind:
+      // Calculate wind speed in m/s
+      windSpeed = 0.6344 * freq + 0.249;
+
       lcd.setCursor(0, 0);
       lcd.print("Wind speed:        ");
       lcd.setCursor(0, 1);
-      lcd.print(0.6344 * freq + 0.2493); // Calculate wind speed in m/s
+      lcd.print(windSpeed); 
       lcd.setCursor(4, 1);
       lcd.print(" m/s           ");
       break;
@@ -109,19 +120,19 @@ void loop() {
       lcd.setCursor(0, 0);
       lcd.print("Wind direction:           ");
       lcd.setCursor(0, 1);
-      int dir;
-      dir = WindDirection(analogRead(A4) * (5.0 / 1023.0));
+     
+      // Calculate voltage
+      windDir = WindDirection(analogRead(A4) * (5.0 / 1023.0));
 
-      if (dir == 0) {
+      if (windDir == 0) {
         lcd.print("North               ");
-      } else if (dir == 90) {
+      } else if (windDir == 90) {
         lcd.print("East                ");
-      } else if (dir == 180) {
+      } else if (windDir == 180) {
         lcd.print("South               ");
       } else {
         lcd.print("West                ");
       }
-      
       break;
 
     case test1:
@@ -135,22 +146,13 @@ void loop() {
 
     case test2:
       lcd.setCursor(0, 0);
-      lcd.print("Shrek is life          ");
+      lcd.print("Sent info to server          ");
       lcd.setCursor(0, 1);
-      lcd.print("Shrek is love                ");
+      lcd.print("                   ");
+      send_MQTT_message(windSpeed, windDir);
+      States = wind;
       break;
-  }
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 
-
-  //Serial.println(keyVal);
-  /*
-  if (key != '-') {
-    //Serial.println(keyVal);
-    //lcd.print(1);
-    //Serial.println(key);
-    lcd.setCursor(16, 0);
-    lcd.print(key);
-  }*/
+  }                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   
 
  // sending the message :) commented out due to keyboard stopping working while active. works for sending data though :)
  // int inx=10;
@@ -169,63 +171,57 @@ void isrCount()
 }
 
 // timer subroutine
-void timerInt(){
-  i_time++; // increment every 0.5s
+void timerInt()
+{
+  // increment every 0.5s
+  i_time++; 
 
   if (i_time > 9){
     i_time = 0;
-    freq = puls / interval; // calculate freq by puls / seconds
 
-    puls = 0; // Reset 
+    // calculate freq by puls / seconds
+    freq = puls / interval; 
+
+    // Reset 
+    puls = 0; 
   }
 }
 
- void fetch_IP(void)
+void fetch_IP(void)
 {
   byte rev=1;
-
   lcd.setCursor(0,1);
-
-  //         01234567890123456789  
   lcd.print("     Waiting IP     ");
 
-  rev=Ethernet.begin( mymac);                  // get IP number
-     
+  // get IP number
+  rev = Ethernet.begin(mymac);
   Serial.print( F("\nW5500 Revision ") );
-    
+  
   if (rev == 0){
-                   
     Serial.println( F( "Failed to access Ethernet controller" ) );
-                   
-    // 0123456789012345689 
     lcd.setCursor(0,0); lcd.print(" Ethernet failed   ");
-  }    
-                 
-              
+  }
+
   Serial.println( F( "Setting up DHCP" ));
   Serial.print("Connected with IP: "); 
   Serial.println(Ethernet.localIP()); 
 
-
   lcd.setCursor(0,1);
-  //         012345678901234567890
   lcd.print("                     ");
   
   lcd.setCursor(0,1);
   lcd.print("myIP=");
   lcd.print(Ethernet.localIP());
   delay(1500);
-
-
 }
 
 //MQTT Routines
-
-void send_MQTT_message(int windSpd, int windDir){
+void send_MQTT_message(float windSpd, int windDir){
   char bufa[50];
   if (client.connected()){
     sprintf(bufa,"Amogus: value =%d", windSpd);
     sprintf(bufa, "Amogus: value =%s", windDir);
+
     Serial.println( bufa );
     client.publish(outTopic, bufa);
     
@@ -239,7 +235,6 @@ void send_MQTT_message(int windSpd, int windDir){
 }
 
 //MQTT server connection
-
 void Connect_MQTT_server(){
   Serial.println(" Connecting to MQTT" );
   Serial.print(server[0]); Serial.print(".");     // Print MQTT server IP number to Serial monitor
@@ -260,10 +255,14 @@ void Connect_MQTT_server(){
 }
   //receive incoming MQTT message
 
- void callback(char* topic, byte* payload, unsigned int length){ 
-  char* receiv_string;                               // copy the payload content into a char* 
-  receiv_string = (char*) malloc(length + 1); 
-  memcpy(receiv_string, payload, length);           // copy received message to receiv_string 
+void callback(char* topic, byte* payload, unsigned int length)
+{ 
+  // copy the payload content into a char* 
+  char* receiv_string;                               
+  receiv_string = (char*) malloc(length + 1);
+  
+  // copy received message to receiv_string 
+  memcpy(receiv_string, payload, length);
   receiv_string[length] = '\0';           
   Serial.println( receiv_string );
   free(receiv_string); 
@@ -271,6 +270,7 @@ void Connect_MQTT_server(){
 
 int WindDirection(float voltage)
 {
+  // Determine wind direction based on voltage
   if (voltage >= 0 && voltage < 0.95){
     return 0;
 
