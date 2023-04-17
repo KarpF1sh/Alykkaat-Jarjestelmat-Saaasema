@@ -86,6 +86,12 @@ void setup() {
 
 void loop() {
 
+  // Calculate wind speed in m/s
+  windSpeed = 0.6344 * freq + 0.249;
+
+  // Calculate voltage and get wind direction
+  windDir = WindDirection(analogRead(A4) * (5.0 / 1023.0));
+
   if (digitalRead(17) == LOW) {
     // 1 Key
     States = wind;
@@ -105,9 +111,6 @@ void loop() {
 
   switch (States) {
     case wind:
-      // Calculate wind speed in m/s
-      windSpeed = 0.6344 * freq + 0.249;
-
       lcd.setCursor(0, 0);
       lcd.print("Wind speed:        ");
       lcd.setCursor(0, 1);
@@ -120,9 +123,6 @@ void loop() {
       lcd.setCursor(0, 0);
       lcd.print("Wind direction:           ");
       lcd.setCursor(0, 1);
-     
-      // Calculate voltage
-      windDir = WindDirection(analogRead(A4) * (5.0 / 1023.0));
 
       if (windDir == 0) {
         lcd.print("North               ");
@@ -219,8 +219,7 @@ void fetch_IP(void)
 void send_MQTT_message(float windSpd, int windDir){
   char bufa[50];
   if (client.connected()){
-    sprintf(bufa,"Amogus: value =%d", windSpd);
-    sprintf(bufa, "Amogus: value =%s", windDir);
+    sprintf(bufa,"(: Sped: value =%f Direction: value =%d", windSpd, windDir);
 
     Serial.println( bufa );
     client.publish(outTopic, bufa);
