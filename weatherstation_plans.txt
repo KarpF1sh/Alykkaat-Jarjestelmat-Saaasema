@@ -1,8 +1,9 @@
 local shtuff
-- tuulen suunnat DONE
+- tuulen suunnat 
 - näytön hienosäätö
--
+- ethernet moduulin aikakatkaisu
+- menu :)
 
 final steps :)
 - datan lähetys näppäimeen
-- 
+- levyn siistiminen
