@@ -1,7 +1,6 @@
 local shtuff
-- tuulen suunnat 
+- tuulen suunnat DONE
 - näytön hienosäätö
-- ethernet moduulin aikakatkaisu
 -
 
 final steps :)
