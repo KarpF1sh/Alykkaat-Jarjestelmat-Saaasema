@@ -225,7 +225,7 @@ void send_MQTT_message(int windSpd, int windDir){
   char bufa[50];
   if (client.connected()){
     sprintf(bufa,"Amogus: value =%d", windSpd);
-    dtostrf(bufa, "Amogus: value =%s", windDir);
+    sprintf(bufa, "Amogus: value =%s", windDir);
     Serial.println( bufa );
     client.publish(outTopic, bufa);
     
