@@ -25,10 +25,13 @@ volatile byte freq = 0;
 const int interval = 5;
 
 // Integer for wind direction
-int windDir;
+int windDir = 0;
 // Float for wind speed
-float windSpeed;
+float windSpeed = 0;
 
+unsigned long initialTime = millis();
+bool sendMessage = false;
+int sendDelay = 5000;
 ///////////////////////////////////////////////////////////////////
 
 EthernetClient ethClient;
@@ -85,7 +88,6 @@ void setup() {
 }
 
 void loop() {
-
   // Calculate wind speed in m/s
   windSpeed = 0.6344 * freq + 0.249;
 
@@ -126,12 +128,27 @@ void loop() {
 
       if (windDir == 0) {
         lcd.print("North               ");
+
+      } else if (windDir == 45) {
+        lcd.print("Northeast               ");
+
       } else if (windDir == 90) {
-        lcd.print("East                ");
+        lcd.print("East             ");
+
+      } else if (windDir == 135){
+        lcd.print("Southgeast               ");
+
       } else if (windDir == 180) {
-        lcd.print("South               ");
+        lcd.print("South                ");
+
+      } else if (windDir == 225) {
+        lcd.print("Southwest(eastwest)             ");
+
+      } else if (windDir == 270) {
+        lcd.print("West              ");
+
       } else {
-        lcd.print("West                ");
+        lcd.print("Northwest           ");
       }
       break;
 
@@ -145,23 +162,40 @@ void loop() {
       break;
 
     case test2:
+      // Invert boolean
+      sendMessage = !sendMessage;
       lcd.setCursor(0, 0);
-      lcd.print("Sent info to server          ");
+
+      // Print sending status      
+      if (sendMessage) {
+        lcd.print("Sending on");
+      } else {
+        lcd.print("Sending off");
+      }
+      
       lcd.setCursor(0, 1);
       lcd.print("                   ");
-      send_MQTT_message(windSpeed, windDir);
-      States = wind;
-      break;
-  }                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   
 
- // sending the message :) commented out due to keyboard stopping working while active. works for sending data though :)
- // int inx=10;
-  
- // while(true){
- // send_MQTT_message(inx);
- // inx++;
- // delay(1500);
- // }
+      // Wait
+      delay(1000);
+
+      // Return state to wind
+      States = wind;
+      break; 
+  }
+
+  // If counted millis difference is over 5000 send message
+  if (sendMessage && (millis() - initialTime > 5000))
+  {
+    // Reset reference time
+    initialTime = millis();
+    send_MQTT_message(windSpeed, windDir);
+  }
+
+  // If millis counter overflows reset the reference
+  if (initialTime > millis()){
+    initialTime = millis();
+  }
 }
 
 // interrupt subroutine
@@ -217,10 +251,12 @@ void fetch_IP(void)
 
 //MQTT Routines
 void send_MQTT_message(float windSpd, int windDir){
-  char bufa[50];
+  char bufa[100];
+  char bufWindspd[5];
   if (client.connected()){
-    sprintf(bufa,"(: Sped: value =%f Direction: value =%d", windSpd, windDir);
-
+    dtostrf(windSpd, 4, 2, bufWindspd);
+    sprintf(bufa,"Team: \"(:\" Speedo: value =%s m/s Direction: value =%d", bufWindspd, windDir);
+    
     Serial.println( bufa );
     client.publish(outTopic, bufa);
     
@@ -270,16 +306,28 @@ void callback(char* topic, byte* payload, unsigned int length)
 int WindDirection(float voltage)
 {
   // Determine wind direction based on voltage
-  if (voltage >= 0 && voltage < 0.95){
+  if (voltage >= 0 && voltage < 0.47){
     return 0;
 
-  } else if (voltage >= 0.95 && voltage < 1.9){
+  } else if (voltage >= 0.47 && voltage < 0.95){
+    return 45;
+
+  } else if (voltage >= 0.95 && voltage < 1.43){
     return 90;
 
-  } else if (voltage >= 1.9 && voltage < 2.85){
+  } else if (voltage >= 1.43 && voltage < 1.90){
+    return 135;
+
+  } else if  (voltage >= 1.90 && voltage < 2.38){
     return 180;
 
-  } else {
+  } else if (voltage >= 2.38 && voltage < 2.85){
+    return 225;
+
+  } else if (voltage >= 2.85 && voltage < 3.33){
     return 270;
+
+  } else { 
+    return 315;
   }
 }

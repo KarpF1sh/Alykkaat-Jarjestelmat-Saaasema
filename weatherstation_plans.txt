@@ -1,9 +1,15 @@
 local shtuff
-- tuulen suunnat 
-- näytön hienosäätö
-- ethernet moduulin aikakatkaisu
-- menu :)
+- tuulen suunnat DONE
+- menu uudelleen koodaus :)
 
 final steps :)
 - datan lähetys näppäimeen
 - levyn siistiminen
+
+
+
+a)	Arduino input signal must be < 5V (5.7V)
+b)	Arduino input signal must be  >0V (-0.7V) 
+c)	Application circuit load to signal box must be (+/-) <50uA 
+d)	In case of malfunction or short circuit (5V) the Arduino input signal can’t cause more than 2mA short circuit current. 
+e)	In case of mall function or short circuit (5V) the application circuit input signal can’t cause more than 0.1mA short circuit current. 
