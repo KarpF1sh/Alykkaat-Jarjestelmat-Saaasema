@@ -255,8 +255,8 @@ void send_MQTT_message(float windSpd, int windDir){
   char bufWindspd[5];
   if (client.connected()){
     dtostrf(windSpd, 4, 2, bufWindspd);
-    sprintf(bufa,"Team: \"(:\" Speedo: value =%s m/s Direction: value =%d", bufWindspd, windDir);
-    
+    //sprintf(bufa,"Team: \"(:\" Speedo: value =%s m/s Direction: value =%d", bufWindspd, windDir);
+    sprintf(bufa,"IOTJS={\"S_name1\":\"Amogus tuulen suunta \",\"S_value1\":%d,\"S_name2\":\"Amogus tuulen nopeus \",\"S_value2\":%s}", windDir, bufWindspd);
     Serial.println( bufa );
     client.publish(outTopic, bufa);
     
